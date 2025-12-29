@@ -21,3 +21,50 @@ enron_data = joblib.load(open("../final_project/final_project_dataset.pkl", "rb"
 
 num_persons = len(enron_data)
 print(f"Number of persons in the dataset: {num_persons}")
+
+num_features = len(next(iter(enron_data.values())))
+print(f"Number of features for each person: {num_features}")
+
+num_poi = sum(1 for person in enron_data.values() if person.get("poi") == True)
+print(f"Number of POIs in the dataset: {num_poi}")
+
+POI_names = []
+with open("../final_project/poi_names.txt", "r") as poi_file:
+    for line in poi_file:
+        line = line.strip()
+        if line.startswith("(y)") or line.startswith("(n)"):
+            name = line[4:]
+            POI_names.append(name)
+
+print(f"Number of POI names in the file: {len(POI_names)}")
+
+print("\nTotal stock value for James Prentice:",
+      enron_data["PRENTICE JAMES"]["total_stock_value"])
+
+print("Number of email messages from Wesley Colwell to POIs:",
+      enron_data["COLWELL WESLEY"]["from_this_person_to_poi"])
+
+print("Value of stock options exercised by Jeffrey Skilling:",
+      enron_data["SKILLING JEFFREY K"]["exercised_stock_options"])
+
+print("Total payments to Kenneth Lay:",
+      enron_data["LAY KENNETH L"]["total_payments"])
+print("Total payments to Jeffrey Skilling:",
+      enron_data["SKILLING JEFFREY K"]["total_payments"])
+print("Total payments to Andrew Fastow:",
+      enron_data["FASTOW ANDREW S"]["total_payments"])
+print("The person taking home the most money",
+      max(("LAY KENNETH L", "SKILLING JEFFREY K", "FASTOW ANDREW S"),
+          key=lambda name: enron_data[name]["total_payments"]))
+
+num_quantified_salary = sum(1 for person in enron_data.values()
+                            if person.get("salary") != "NaN")
+print(f"\nNumber of people with quantified salary: {num_quantified_salary}")
+
+num_known_email = sum(1 for person in enron_data.values()
+                      if person.get("email_address") != "NaN")
+print(f"Number of people with known email address: {num_known_email}")
+
+from tools.feature_format import featureFormat, targetFeatureSplit
+
+
