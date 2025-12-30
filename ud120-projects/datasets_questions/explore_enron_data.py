@@ -17,7 +17,7 @@
 
 import joblib
 
-enron_data = joblib.load(open("../final_project/final_project_dataset.pkl", "rb"))
+enron_data = joblib.load(open("final_project/final_project_dataset.pkl", "rb"))
 
 num_persons = len(enron_data)
 print(f"Number of persons in the dataset: {num_persons}")
@@ -29,7 +29,7 @@ num_poi = sum(1 for person in enron_data.values() if person.get("poi") == True)
 print(f"Number of POIs in the dataset: {num_poi}")
 
 POI_names = []
-with open("../final_project/poi_names.txt", "r") as poi_file:
+with open("final_project/poi_names.txt", "r") as poi_file:
     for line in poi_file:
         line = line.strip()
         if line.startswith("(y)") or line.startswith("(n)"):
@@ -65,6 +65,23 @@ num_known_email = sum(1 for person in enron_data.values()
                       if person.get("email_address") != "NaN")
 print(f"Number of people with known email address: {num_known_email}")
 
+# Ensure parent directory is in sys.path so 'tools' can be imported
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from tools.feature_format import featureFormat, targetFeatureSplit
+
+num_missing_total_payments = sum(1 for person in enron_data.values()
+                                 if person.get("total_payments") == "NaN")
+print(f"Number of people with 'NaN' for total payments: {num_missing_total_payments}")
+print(f"Percentage of people with 'NaN' for total payments: "
+      f"{(num_missing_total_payments / num_persons) * 100:.2f}%")
+
+num_missing_total_payments_poi = sum(1 for person in enron_data.values()
+                                     if person.get("poi") == True and person.get("total_payments") == "NaN")
+print(f"Number of POIs with 'NaN' for total payments: {num_missing_total_payments_poi}")
+print(f"Percentage of POIs with 'NaN' for total payments: "
+      f"{(num_missing_total_payments_poi / num_poi) * 100:.2f}%")
 
 
