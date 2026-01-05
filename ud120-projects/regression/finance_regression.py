@@ -20,13 +20,12 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 't
 from feature_format import featureFormat, targetFeatureSplit
 dictionary = joblib.load( open(os.path.join(os.path.dirname(__file__), '..', 'final_project', 'final_project_dataset_modified.pkl'), "rb") )
 
-
 ### list the features you want to look at--first item in the
 ### list will be the "target" feature
-features_list = ["bonus", "salary"]
+features_list = ["bonus", 'long_term_incentive']
 # Use absolute path for sort_keys file
-sort_keys_path = os.path.join(os.path.dirname(__file__), '..', 'tools', 'python2_lesson06_keys.pkl')
-data = featureFormat(dictionary, features_list, remove_any_zeroes=True, sort_keys=sort_keys_path)
+# sort_keys_path = os.path.join(os.path.dirname(__file__), '..', 'tools', 'python2_lesson06_keys.pkl')
+data = featureFormat(dictionary, features_list, remove_any_zeroes=True, sort_keys=False)
 target, features = targetFeatureSplit(data)
 
 ### training-testing split needed in regression, just like classification
