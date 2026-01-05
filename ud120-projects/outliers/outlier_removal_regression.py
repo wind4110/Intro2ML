@@ -9,8 +9,8 @@ from outlier_cleaner import outlierCleaner
 
 
 ### load up some practice data with outliers in it
-ages = joblib.load( open("./practice_outliers_ages.pkl", "rb") )
-net_worths = joblib.load( open("./practice_outliers_net_worths.pkl", "rb") )
+ages = joblib.load( open("ud120-projects/outliers/practice_outliers_ages.pkl", "rb") )
+net_worths = joblib.load( open("ud120-projects/outliers/practice_outliers_net_worths.pkl", "rb") )
 
 
 
@@ -27,10 +27,13 @@ ages_train, ages_test, net_worths_train, net_worths_test = train_test_split(ages
 ### the plotting code below works, and you can see what your regression looks like
 
 
-
-
-
-
+from sklearn.linear_model import LinearRegression
+reg = LinearRegression()
+reg.fit(ages_train, net_worths_train)
+print("Slope (coefficient):", reg.coef_)
+print("Intercept:", reg.intercept_)
+print("R^2 score on training data:", reg.score(ages_train, net_worths_train))
+print("R^2 score on testing data:", reg.score(ages_test, net_worths_test))
 
 
 
@@ -82,3 +85,7 @@ else:
     print("outlierCleaner() is returning an empty list, no refitting to be done")
 
 
+print("Refitted slope (coefficient):", reg.coef_)
+print("Refitted intercept:", reg.intercept_)
+print("R^2 score on cleaned data:", reg.score(ages, net_worths))
+print("R^2 score on original test data:", reg.score(ages_test, net_worths_test))
