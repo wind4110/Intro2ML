@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-""" 
+"""
     Skeleton code for k-means clustering mini-project.
 """
 
@@ -9,7 +9,7 @@ import joblib
 import numpy
 import matplotlib.pyplot as plt
 import sys
-sys.path.append(os.path.abspath("../tools/"))
+sys.path.append(sys.path[0] + os.path.sep + '../tools/')
 from feature_format import featureFormat, targetFeatureSplit
 
 def Draw(pred, features, poi, mark_poi=False, name="image.png", f1_name="feature 1", f2_name="feature 2"):
@@ -34,13 +34,13 @@ def Draw(pred, features, poi, mark_poi=False, name="image.png", f1_name="feature
 
 
 ### load in the dict of dicts containing all the data on each person in the dataset
-data_dict = joblib.load( open("../final_project/final_project_dataset.pkl", "rb") )
-### there's an outlier--remove it! 
+data_dict = joblib.load( open("ud120-projects/final_project/final_project_dataset.pkl", "rb") )
+### there's an outlier--remove it!
 data_dict.pop("TOTAL", 0)
 
 
-### the input features we want to use 
-### can be any key in the person-level dictionary (salary, director_fees, etc.) 
+### the input features we want to use
+### can be any key in the person-level dictionary (salary, director_fees, etc.)
 feature_1 = "salary"
 feature_2 = "exercised_stock_options"
 poi  = "poi"
@@ -50,7 +50,7 @@ poi, finance_features = targetFeatureSplit( data )
 
 
 ### in the "clustering with 3 features" part of the mini-project,
-### you'll want to change this line to 
+### you'll want to change this line to
 ### for f1, f2, _ in finance_features:
 ### (as it's currently written, the line below assumes 2 features)
 for f1, f2 in finance_features:
@@ -59,8 +59,10 @@ plt.show()
 
 ### cluster here; create predictions of the cluster labels
 ### for the data and store them to a list called pred
-
-
+from sklearn.cluster import KMeans
+kmeans = KMeans(n_clusters=2)
+kmeans.fit(finance_features)
+pred = kmeans.predict(finance_features)
 
 
 ### rename the "name" parameter when you change the number of features
@@ -69,3 +71,22 @@ try:
     Draw(pred, finance_features, poi, mark_poi=False, name="clusters.pdf", f1_name=feature_1, f2_name=feature_2)
 except NameError:
     print("No predictions object named pred found, no clusters to plot")
+
+print("max exercised_stock_options:", max( featureFormat( data_dict, ["exercised_stock_options"] ).flatten() ) )
+
+min_exercised_stock_options = 1e+10
+for f1, f2 in finance_features:
+    if f2 == 0:
+        continue
+    elif f2 < min_exercised_stock_options:
+        min_exercised_stock_options = f2
+print("min exercised_stock_options:", min_exercised_stock_options)
+
+print("max salary:", max( featureFormat( data_dict, ["salary"] ).flatten() ) )
+min_salary = 1e+10
+for f1, f2, _ in finance_features:
+    if f1 == 0:
+        continue
+    elif f1 < min_salary:
+        min_salary = f1
+print("min salary:", min_salary)
