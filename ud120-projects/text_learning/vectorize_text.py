@@ -55,7 +55,7 @@ for name, from_person in [("sara", from_sara), ("chris", from_chris)]:
 
 	        ### use str.replace() to remove any instances of the words
 	        ### ["sara", "shackleton", "chris", "germani"]
-            for word in ["sara", "shackleton", "chris", "germani"]:
+            for word in ["sara", "shackleton", "chris", "germani",'sshacklensf', 'cgermannsf']:
                 text = text.replace(word, "")
 
 	        ### append the text to word_data
@@ -70,8 +70,8 @@ print(word_data[152])
 from_sara.close()
 from_chris.close()
 
-joblib.dump( word_data, open("your_word_data.pkl", "wb") )
-joblib.dump( from_data, open("your_email_authors.pkl", "wb") )
+joblib.dump( word_data, open("ud120-projects/text_learning/your_word_data.pkl", "wb") )
+joblib.dump( from_data, open("ud120-projects/text_learning/your_email_authors.pkl", "wb") )
 
 
 ### in Part 4, do TfIdf vectorization here

@@ -10,8 +10,8 @@ numpy.random.seed(42)
 ### mini-project.
 words_file = "ud120-projects/text_learning/your_word_data.pkl"
 authors_file = "ud120-projects/text_learning/your_email_authors.pkl"
-word_data = joblib.load( open(words_file, "r"))
-authors = joblib.load( open(authors_file, "r") )
+word_data = joblib.load( open(words_file, "rb"))
+authors = joblib.load( open(authors_file, "rb") )
 
 
 
@@ -43,5 +43,14 @@ clf.fit(features_train, labels_train)
 pred = clf.predict(features_test)
 print("train score:", clf.score(features_train, labels_train))
 print("test score:", clf.score(features_test, labels_test))
+
+print("number of features:", len(features_train[0]))
+
+importances = clf.feature_importances_
+for i, importance in enumerate(importances):
+    if importance > 0.2:
+        print("important feature index:", i)
+        print("importance value:", importance)
+        print("corresponding word:", vectorizer.get_feature_names_out()[i])
 
 
