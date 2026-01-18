@@ -69,6 +69,10 @@ n_components = 150
 print("Extracting the top %d eigenfaces from %d faces" % (n_components, X_train.shape[0]))
 t0 = time()
 pca = PCA(n_components=n_components, whiten=True).fit(X_train)
+
+# Variance explained by the first and second principal components
+print("Variance explained by the 1st principal component: {:.2%}".format(pca.explained_variance_ratio_[0]))
+print("Variance explained by the 2nd principal component: {:.2%}".format(pca.explained_variance_ratio_[1]))
 print("done in %0.3fs" % (time() - t0))
 
 eigenfaces = pca.components_.reshape((n_components, h, w))
@@ -140,4 +144,4 @@ plot_gallery(X_test, prediction_titles, h, w)
 eigenface_titles = ["eigenface %d" % i for i in range(eigenfaces.shape[0])]
 plot_gallery(eigenfaces, eigenface_titles, h, w)
 
-pl.show()
+# pl.show()
