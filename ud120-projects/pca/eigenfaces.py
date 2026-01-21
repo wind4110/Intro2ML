@@ -1,3 +1,4 @@
+
 """
 ===================================================
 Faces recognition example using eigenfaces and SVMs
@@ -14,6 +15,14 @@ The dataset used in this example is a preprocessed excerpt of the
 
 """
 
+# Set global random seeds for reproducibility
+import os
+import random
+os.environ["PYTHONHASHSEED"] = "42"
+random.seed(42)
+import numpy as np
+np.random.seed(42)
+
 
 
 print(__doc__)
@@ -21,7 +30,7 @@ print(__doc__)
 from time import time
 import logging
 import pylab as pl
-import numpy as np
+# import numpy as np
 
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.datasets import fetch_lfw_people
@@ -40,12 +49,17 @@ lfw_people = fetch_lfw_people(min_faces_per_person=70, resize=0.4)
 
 # introspect the images arrays to find the shapes (for plotting)
 n_samples, h, w = lfw_people.images.shape
-np.random.seed(42)
+# np.random.seed(42)
 
 # for machine learning we use the data directly (as relative pixel
 # position info is ignored by this model)
 X = lfw_people.data
 n_features = X.shape[1]
+# Check for NaNs in X before PCA
+if np.isnan(X).any():
+  nan_count = np.isnan(X).sum()
+  print(f"The number of NaN in X : {{{nan_count}/{X.size}}}")
+  raise ValueError("NaN detected in X before PCA!")
 
 # the label to predict is the id of the person
 y = lfw_people.target
@@ -60,20 +74,32 @@ print("n_classes: %d" % n_classes)
 ###############################################################################
 # Split into a training and testing set
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
+from sklearn.feature_selection import VarianceThreshold
+print("Original number of samples:", X_train.shape[0])
+vt = VarianceThreshold(threshold=1e-4) # Using a small threshold
+X_train = vt.fit_transform(X_train)
+X_test = vt.transform(X_test)
+print("Number of samples after variance thresholding:", X_train.shape[0])
 
-###############################################################################
-# Compute a PCA (eigenfaces) on the face dataset (treated as unlabeled
-# dataset): unsupervised feature extraction / dimensionality reduction
-n_components = 150
+n_components = 50
+if np.isnan(X_train).any():
+  nan_count = np.isnan(X_train).sum()
+  print(f"The number of NaN in X_train : {{{nan_count}/{X_train.size}}}")
+  raise ValueError("NaN detected in X_train before PCA!")
+if np.isnan(X_test).any():
+  nan_count = np.isnan(X_test).sum()
+  print(f"The number of NaN in X_test : {{{nan_count}/{X_test.size}}}")
+  raise ValueError("NaN detected in X_test before PCA!")
+
 
 print("Extracting the top %d eigenfaces from %d faces" % (n_components, X_train.shape[0]))
-t0 = time()
-pca = PCA(n_components=n_components, whiten=True).fit(X_train)
 
+t0 = time()
+pca = PCA(n_components=n_components,whiten=False, svd_solver='full').fit(X_train)
+print("done in %0.3fs" % (time() - t0))
 # Variance explained by the first and second principal components
 print("Variance explained by the 1st principal component: {:.2%}".format(pca.explained_variance_ratio_[0]))
 print("Variance explained by the 2nd principal component: {:.2%}".format(pca.explained_variance_ratio_[1]))
-print("done in %0.3fs" % (time() - t0))
 
 eigenfaces = pca.components_.reshape((n_components, h, w))
 
@@ -81,7 +107,23 @@ print("Projecting the input data on the eigenfaces orthonormal basis")
 t0 = time()
 X_train_pca = pca.transform(X_train)
 X_test_pca = pca.transform(X_test)
+# 2. Manually whiten with a small epsilon for stability
+epsilon = 1e-9
+X_train_pca /= (np.sqrt(pca.explained_variance_) + epsilon)
+X_test_pca /= (np.sqrt(pca.explained_variance_) + epsilon)
 print("done in %0.3fs" % (time() - t0))
+
+
+# Check for NaNs in X_train_pca after PCA
+if np.isnan(X_train_pca).any():
+  nan_count = np.isnan(X_train_pca).sum()
+  print(f"The number of NaN in X_train_pca : {{{nan_count}/{X_train_pca.size}}}")
+  raise ValueError("NaN detected in X_train_pca after PCA!")
+if np.isnan(X_test_pca).any():
+  nan_count = np.isnan(X_test_pca).sum()
+  print(f"The number of NaN in X_test_pca : {{{nan_count}/{X_test_pca.size}}}")
+  raise ValueError("NaN detected in X_test_pca after PCA!")
+
 
 
 ###############################################################################
@@ -93,11 +135,12 @@ param_grid = {
           'gamma': [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.1],
           }
 # for sklearn version 0.16 or prior, the class_weight parameter value is 'auto'
-clf = GridSearchCV(SVC(kernel='rbf', class_weight='balanced'), param_grid)
+# clf = GridSearchCV(SVC(kernel='rbf', class_weight='balanced'), param_grid)
+clf = SVC(kernel='rbf', class_weight='balanced', C=1000.0, gamma=0.1)
 clf = clf.fit(X_train_pca, y_train)
 print("done in %0.3fs" % (time() - t0))
 print("Best estimator found by grid search:")
-print(clf.best_estimator_)
+# print(clf.best_estimator_)
 
 
 ###############################################################################
@@ -134,14 +177,14 @@ def title(y_pred, y_test, target_names, i):
     true_name = target_names[y_test[i]].rsplit(' ', 1)[-1]
     return 'predicted: %s\ntrue:      %s' % (pred_name, true_name)
 
-prediction_titles = [title(y_pred, y_test, target_names, i)
-                      for i in range(y_pred.shape[0])]
+# prediction_titles = [title(y_pred, y_test, target_names, i)
+                    #   for i in range(y_pred.shape[0])]
 
-plot_gallery(X_test, prediction_titles, h, w)
+# plot_gallery(X_test, prediction_titles, h, w)
 
 # plot the gallery of the most significative eigenfaces
 
-eigenface_titles = ["eigenface %d" % i for i in range(eigenfaces.shape[0])]
-plot_gallery(eigenfaces, eigenface_titles, h, w)
+# eigenface_titles = ["eigenface %d" % i for i in range(eigenfaces.shape[0])]
+# plot_gallery(eigenfaces, eigenface_titles, h, w)
 
 # pl.show()
