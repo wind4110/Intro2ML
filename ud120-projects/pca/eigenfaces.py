@@ -15,22 +15,12 @@ The dataset used in this example is a preprocessed excerpt of the
 
 """
 
-# Set global random seeds for reproducibility
-import os
-import random
-os.environ["PYTHONHASHSEED"] = "42"
-random.seed(42)
-import numpy as np
-np.random.seed(42)
-
-
-
 print(__doc__)
 
 from time import time
 import logging
 import pylab as pl
-# import numpy as np
+import numpy as np
 
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.datasets import fetch_lfw_people
@@ -49,7 +39,7 @@ lfw_people = fetch_lfw_people(min_faces_per_person=70, resize=0.4)
 
 # introspect the images arrays to find the shapes (for plotting)
 n_samples, h, w = lfw_people.images.shape
-# np.random.seed(42)
+np.random.seed(42)
 
 # for machine learning we use the data directly (as relative pixel
 # position info is ignored by this model)
@@ -74,12 +64,14 @@ print("n_classes: %d" % n_classes)
 ###############################################################################
 # Split into a training and testing set
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
+
+# Apply variance thresholding to remove low-variance features
 from sklearn.feature_selection import VarianceThreshold
-print("Original number of samples:", X_train.shape[0])
-vt = VarianceThreshold(threshold=1e-4) # Using a small threshold
+print("Original number of features:", X_train.shape[1])
+vt = VarianceThreshold(threshold=1e-10) # Using a small threshold
 X_train = vt.fit_transform(X_train)
 X_test = vt.transform(X_test)
-print("Number of samples after variance thresholding:", X_train.shape[0])
+print("Number of features after variance thresholding:", X_train.shape[1])
 
 n_components = 50
 if np.isnan(X_train).any():
@@ -95,7 +87,7 @@ if np.isnan(X_test).any():
 print("Extracting the top %d eigenfaces from %d faces" % (n_components, X_train.shape[0]))
 
 t0 = time()
-pca = PCA(n_components=n_components,whiten=False, svd_solver='full').fit(X_train)
+pca = PCA(n_components=n_components, whiten=True, svd_solver='full').fit(X_train)
 print("done in %0.3fs" % (time() - t0))
 # Variance explained by the first and second principal components
 print("Variance explained by the 1st principal component: {:.2%}".format(pca.explained_variance_ratio_[0]))
@@ -107,10 +99,6 @@ print("Projecting the input data on the eigenfaces orthonormal basis")
 t0 = time()
 X_train_pca = pca.transform(X_train)
 X_test_pca = pca.transform(X_test)
-# 2. Manually whiten with a small epsilon for stability
-epsilon = 1e-9
-X_train_pca /= (np.sqrt(pca.explained_variance_) + epsilon)
-X_test_pca /= (np.sqrt(pca.explained_variance_) + epsilon)
 print("done in %0.3fs" % (time() - t0))
 
 
@@ -135,8 +123,8 @@ param_grid = {
           'gamma': [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.1],
           }
 # for sklearn version 0.16 or prior, the class_weight parameter value is 'auto'
-# clf = GridSearchCV(SVC(kernel='rbf', class_weight='balanced'), param_grid)
-clf = SVC(kernel='rbf', class_weight='balanced', C=1000.0, gamma=0.1)
+clf = GridSearchCV(SVC(kernel='rbf', class_weight='balanced'), param_grid)
+# clf = SVC(kernel='rbf', class_weight='balanced', C=1000.0, gamma=0.1)
 clf = clf.fit(X_train_pca, y_train)
 print("done in %0.3fs" % (time() - t0))
 print("Best estimator found by grid search:")
