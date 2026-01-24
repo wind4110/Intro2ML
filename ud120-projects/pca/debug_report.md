@@ -1,9 +1,9 @@
 # NaNs appearence in PCA process problem solution report
 
 ## Project
-- Dataset:
-- Method:
-- Target:
+- Dataset: Labeled Faces in the Wild (LFW) dataset - a collection of face photographs designed for studying face recognition in unconstrained environments
+- Method: Principal Component Analysis (PCA) with eigenfaces and Support Vector Machines (SVMs) for face recognition
+- Target: Face recognition/classification - identifying individuals from facial images using dimensionality reduction and classification techniques
 
 ## Problem
 ### 1. NaNs errors happen in `pca().fit()`.
